@@ -24,6 +24,40 @@ const graphicalData = {
   ],
 };
 
+const newData = {
+  nodes: [],
+  links: [],
+};
+
+graphicalData.edges.map((edge) => {
+  newData.links.push({
+    source: edge[0],
+    target: edge[1],
+    value: edge[2],
+  });
+});
+
+for (let i = 1; i <= graphicalData.n; i++) {
+  let color = 1;
+
+  switch (i) {
+    case graphicalData.from:
+      color = 2;
+      break;
+
+    case graphicalData.to:
+      color = 3;
+      break;
+    default:
+      color = 1;
+      break;
+  }
+  newData.nodes.push({
+    id: i,
+    group: color,
+  });
+}
+
 const interactiveData = {
   nodes: [
     {
@@ -134,7 +168,7 @@ function App() {
     <div className="App">
       <div onMouseMove={onMouseMove}>
         {/* <LinePlot data={data} /> */}
-        <ForceDirectedGraph data={interactiveData} />
+        <ForceDirectedGraph data={newData} />
       </div>
       {graph ? <pre>{JSON.stringify(graph, null, 2)}</pre> : "Loading..."}
     </div>

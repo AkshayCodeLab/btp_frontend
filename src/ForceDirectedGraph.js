@@ -51,7 +51,7 @@ const ForceDirectedGraph = ({ data }) => {
       .selectAll("circle")
       .data(nodes)
       .join("circle")
-      .attr("r", 5)
+      .attr("r", 10)
       .attr("fill", (d) => color(d.group))
       .call(drag(simulation));
 
