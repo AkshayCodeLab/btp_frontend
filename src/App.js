@@ -4,6 +4,7 @@ import * as d3 from "d3";
 import axios from "axios";
 import LinePlot from "./LinePlot";
 import ForceDirectedGraph from "./ForceDirectedGraph";
+import useFetchGraph from "./Utils/useFetchGraph";
 
 const graphicalData = {
   n: 8,
@@ -38,26 +39,11 @@ graphicalData.edges.map((edge) => {
 });
 
 for (let i = 1; i <= graphicalData.n; i++) {
-  let color = 1;
-
-  switch (i) {
-    case graphicalData.from:
-      color = 2;
-      break;
-
-    case graphicalData.to:
-      color = 3;
-      break;
-    default:
-      color = 1;
-      break;
-  }
   newData.nodes.push({
     id: i,
-    group: color,
+    group: 1,
   });
 }
-
 const interactiveData = {
   nodes: [
     {
@@ -145,42 +131,39 @@ function App() {
   const [graph, setGraph] = useState([]);
   const [to, setTo] = useState(null);
   const [from, setFrom] = useState(null);
-  useEffect(() => {
-    fetchGraphData(graphicalData);
-  }, []);
-
-  const fetchGraphData = async (data) => {
-    try {
-      const response = await axios.post("http://localhost:8080/getGraph", data);
-      console.log(response.data);
-      setGraph(response.data); // Set graph with fetched data
-    } catch (error) {
-      console.log("Error in fetching graph: ", error);
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(`To: ${to} \n From: ${from}`);
-  };
   const [data, setData] = useState(() => d3.ticks(-2, 2, 200).map(Math.sin));
+  const [path, setPath] = useState([]);
+  useFetchGraph(graphicalData, setGraph);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const response = await axios.post("http://localhost:8080/shortestPath", {
+      to: to,
+      from: from,
+    });
+
+    setPath(response.data?.second);
+  };
 
   function onMouseMove(event) {
     const [x, y] = d3.pointer(event);
     setData(data.slice(-200).concat(Math.atan2(x, y)));
   }
+
   return (
     <div className="App">
       <div onMouseMove={onMouseMove}>
-        {/* <LinePlot data={data} /> */}
-        <ForceDirectedGraph data={newData} />
+        <ForceDirectedGraph data={newData} pathNodes={path} />
       </div>
+
       <form action="submit">
+        <label>From: </label>
         <input
           placeholder="from"
           value={from}
           onChange={(e) => setFrom(e.target.value)}
         />
+        <label>To: </label>
         <input
           placeholder="to"
           value={to}
@@ -188,6 +171,7 @@ function App() {
         />
         <button onClick={handleSubmit}>Submit</button>
       </form>
+
       {graph ? <pre>{JSON.stringify(graph, null, 2)}</pre> : "Loading..."}
     </div>
   );

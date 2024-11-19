@@ -1,13 +1,26 @@
 import React, { useRef, useEffect } from "react";
 import * as d3 from "d3";
 
-const ForceDirectedGraph = ({ data }) => {
+const ForceDirectedGraph = ({ data, pathNodes }) => {
   const svgRef = useRef(null);
   const width = 1000;
   const height = 800;
+  const isContributingEdge = (source, target) => {
+    const sourceIndex = pathNodes.indexOf(source);
+    const targetIndex = pathNodes.indexOf(target);
 
+    // Both source and target must exist in pathNodes and must be adjacent
+    return (
+      sourceIndex !== -1 &&
+      targetIndex !== -1 &&
+      Math.abs(sourceIndex - targetIndex) === 1
+    );
+  };
   useEffect(() => {
     const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    // Clear existing SVG elements to avoid overlapping
+    d3.select(svgRef.current).selectAll("*").remove();
 
     // Create copies of the data to avoid mutation
     const links = data.links.map((d) => ({ ...d }));
@@ -41,7 +54,10 @@ const ForceDirectedGraph = ({ data }) => {
       .selectAll("line")
       .data(links)
       .join("line")
-      .attr("stroke-width", (d) => Math.sqrt(d.value));
+      .attr("stroke-width", (d) => Math.sqrt(d.value))
+      .attr("stroke", (d) =>
+        isContributingEdge(d.source.id, d.target.id) ? "red" : "#999"
+      );
 
     // Add nodes as circles
     const node = svg
@@ -52,7 +68,7 @@ const ForceDirectedGraph = ({ data }) => {
       .data(nodes)
       .join("circle")
       .attr("r", 10)
-      .attr("fill", (d) => color(d.group))
+      .attr("fill", (d) => (pathNodes.includes(d.id) ? "red" : "green"))
       .call(drag(simulation));
 
     // Add node labels
@@ -121,7 +137,7 @@ const ForceDirectedGraph = ({ data }) => {
 
     // Cleanup on unmount
     return () => simulation.stop();
-  }, [data]);
+  }, [data, pathNodes]);
 
   return <svg ref={svgRef}></svg>;
 };
