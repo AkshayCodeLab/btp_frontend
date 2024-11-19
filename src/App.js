@@ -143,7 +143,8 @@ const interactiveData = {
 
 function App() {
   const [graph, setGraph] = useState([]);
-
+  const [to, setTo] = useState(null);
+  const [from, setFrom] = useState(null);
   useEffect(() => {
     fetchGraphData(graphicalData);
   }, []);
@@ -158,6 +159,10 @@ function App() {
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(`To: ${to} \n From: ${from}`);
+  };
   const [data, setData] = useState(() => d3.ticks(-2, 2, 200).map(Math.sin));
 
   function onMouseMove(event) {
@@ -170,6 +175,19 @@ function App() {
         {/* <LinePlot data={data} /> */}
         <ForceDirectedGraph data={newData} />
       </div>
+      <form action="submit">
+        <input
+          placeholder="from"
+          value={from}
+          onChange={(e) => setFrom(e.target.value)}
+        />
+        <input
+          placeholder="to"
+          value={to}
+          onChange={(e) => setTo(e.target.value)}
+        />
+        <button onClick={handleSubmit}>Submit</button>
+      </form>
       {graph ? <pre>{JSON.stringify(graph, null, 2)}</pre> : "Loading..."}
     </div>
   );

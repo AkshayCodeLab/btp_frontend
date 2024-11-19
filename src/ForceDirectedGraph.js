@@ -3,8 +3,8 @@ import * as d3 from "d3";
 
 const ForceDirectedGraph = ({ data }) => {
   const svgRef = useRef(null);
-  const width = 928;
-  const height = 680;
+  const width = 1000;
+  const height = 800;
 
   useEffect(() => {
     const color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -66,6 +66,16 @@ const ForceDirectedGraph = ({ data }) => {
       .join("text")
       .text((d) => d.id);
 
+    // Add weights as text on edges
+    const edgeWeight = svg
+      .append("g")
+      .attr("font-size", 10)
+      .attr("fill", "#000")
+      .selectAll("text")
+      .data(links)
+      .join("text")
+      .text((d) => d.value); // Assuming the weight is stored in the `value` property
+
     // Update positions on each tick
     simulation.on("tick", () => {
       link
@@ -77,6 +87,10 @@ const ForceDirectedGraph = ({ data }) => {
       node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
 
       nodeLabel.attr("x", (d) => d.x).attr("y", (d) => d.y - 10);
+
+      edgeWeight
+        .attr("x", (d) => (d.source.x + d.target.x) / 2)
+        .attr("y", (d) => (d.source.y + d.target.y) / 2);
     });
 
     // Drag functions
