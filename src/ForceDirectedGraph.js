@@ -102,11 +102,11 @@ const ForceDirectedGraph = ({ data, pathNodes }) => {
 
       node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
 
-      nodeLabel.attr("x", (d) => d.x).attr("y", (d) => d.y - 10);
+      nodeLabel.attr("x", (d) => d.x).attr("y", (d) => d.y - 15);
 
       edgeWeight
-        .attr("x", (d) => (d.source.x + d.target.x) / 2)
-        .attr("y", (d) => (d.source.y + d.target.y) / 2);
+        .attr("x", (d) => (d.source.x + d.target.x) / 2 + 10)
+        .attr("y", (d) => (d.source.y + d.target.y) / 2 - 10);
     });
 
     // Drag functions

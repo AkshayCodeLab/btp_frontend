@@ -12,16 +12,16 @@ const graphicalData = {
   to: 5,
   edges: [
     [1, 2, 8],
-    [1, 7, 3],
+    [1, 7, 6],
     [1, 3, 7],
     [2, 7, 3],
     [2, 4, 2],
     [3, 7, 6],
-    [3, 6, 1],
+    [3, 6, 2],
     [4, 5, 4],
     [5, 6, 2],
     [5, 7, 12],
-    [6, 7, 2],
+    [6, 7, 4],
   ],
 };
 
@@ -131,6 +131,8 @@ function App() {
   const [graph, setGraph] = useState([]);
   const [to, setTo] = useState(null);
   const [from, setFrom] = useState(null);
+  const [fuel, setFuel] = useState(null);
+  const [error, setError] = useState("");
   const [data, setData] = useState(() => d3.ticks(-2, 2, 200).map(Math.sin));
   const [path, setPath] = useState([]);
   useFetchGraph(graphicalData, setGraph);
@@ -140,9 +142,17 @@ function App() {
     const response = await axios.post("http://localhost:8080/shortestPath", {
       to: to,
       from: from,
+      fuel: fuel,
     });
 
-    setPath(response.data?.second);
+    console.log(response.data);
+
+    if (response.data?.second.length === 0) {
+      setError("Insufficient fuel to traverse path!");
+    } else {
+      setError("");
+      setPath(response.data?.second);
+    }
   };
 
   function onMouseMove(event) {
@@ -155,7 +165,7 @@ function App() {
       <div onMouseMove={onMouseMove}>
         <ForceDirectedGraph data={newData} pathNodes={path} />
       </div>
-
+      {error && <div>The path can't be traversed!</div>}
       <form action="submit">
         <label>From: </label>
         <input
@@ -168,6 +178,11 @@ function App() {
           placeholder="to"
           value={to}
           onChange={(e) => setTo(e.target.value)}
+        />
+        <input
+          placeholder="fuel"
+          value={fuel}
+          onChange={(e) => setFuel(e.target.value)}
         />
         <button onClick={handleSubmit}>Submit</button>
       </form>
