@@ -31,11 +31,17 @@ const ForceDirectedGraph = ({ data, pathNodes }) => {
       .forceSimulation(nodes)
       .force(
         "link",
-        d3.forceLink(links).id((d) => d.id)
+        d3
+          .forceLink(links)
+          .id((d) => d.id)
+          .distance((d) => {
+            return 100 * Math.pow(d.value, 0.7);
+          })
       )
-      .force("charge", d3.forceManyBody().strength(-10000)) // Increase the strength of repulsion
-      .force("x", d3.forceX())
-      .force("y", d3.forceY());
+      .force("charge", d3.forceManyBody().strength(-6000))
+      .force("center", d3.forceCenter(0, 0))
+      .force("x", d3.forceX().strength(0.1))
+      .force("y", d3.forceY().strength(0.1));
 
     // Create the SVG element
     const svg = d3
@@ -90,7 +96,7 @@ const ForceDirectedGraph = ({ data, pathNodes }) => {
       .selectAll("text")
       .data(links)
       .join("text")
-      .text((d) => d.value); // Assuming the weight is stored in the `value` property
+      .text((d) => d.value + " KWH"); // Assuming the weight is stored in the `value` property
 
     // Update positions on each tick
     simulation.on("tick", () => {

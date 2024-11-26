@@ -179,6 +179,8 @@ function App() {
           value={to}
           onChange={(e) => setTo(e.target.value)}
         />
+        <label>Fuel: </label>
+
         <input
           placeholder="fuel"
           value={fuel}
