@@ -30,7 +30,7 @@ const newData = {
   links: [],
 };
 
-graphicalData.edges.map((edge) => {
+graphicalData.edges.forEach((edge) => {
   newData.links.push({
     source: edge[0],
     target: edge[1],
@@ -135,6 +135,8 @@ function App() {
   const [error, setError] = useState("");
   const [data, setData] = useState(() => d3.ticks(-2, 2, 200).map(Math.sin));
   const [path, setPath] = useState([]);
+  const [vehicleModel, setVehicleModel] = useState("");
+  const [simulData, setSimulData] = useState(newData);
   useFetchGraph(graphicalData, setGraph);
 
   const handleSubmit = async (e) => {
@@ -155,6 +157,20 @@ function App() {
     }
   };
 
+  const handleCaliberation = async (e) => {
+    e.preventDefault();
+    if (vehicleModel.length === 0) return;
+
+    const response = await axios.post("http://localhost:8080/caliberate", {
+      name: vehicleModel,
+    });
+
+    setSimulData({
+      nodes: simulData.nodes,
+      links: response.data,
+    });
+  };
+
   function onMouseMove(event) {
     const [x, y] = d3.pointer(event);
     setData(data.slice(-200).concat(Math.atan2(x, y)));
@@ -163,9 +179,25 @@ function App() {
   return (
     <div className="App">
       <div onMouseMove={onMouseMove}>
-        <ForceDirectedGraph data={newData} pathNodes={path} />
+        <ForceDirectedGraph data={simulData} pathNodes={path} />
       </div>
       {error && <div>The path can't be traversed!</div>}
+
+      <form action="submit">
+        <label>Vehicle Model: </label>
+        <select
+          name="select"
+          value={vehicleModel}
+          onChange={(e) => setVehicleModel(e.target.value)}
+        >
+          <option value="">Select</option>
+          <option value="Tesla Model 3">Tesla Model 3</option>
+          <option value="Tesla Model Y">Tesla Model Y</option>
+          <option value="Hyundai Kona Electric">Hyundai Kona Electric</option>
+        </select>
+        <button onClick={handleCaliberation}>Submit</button>
+      </form>
+
       <form action="submit">
         <label>From: </label>
         <input
