@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "./App.css";
 import * as d3 from "d3";
 import axios from "axios";
-import LinePlot from "./LinePlot";
 import ForceDirectedGraph from "./ForceDirectedGraph";
 import useFetchGraph from "./Utils/useFetchGraph";
 
@@ -44,88 +43,6 @@ for (let i = 1; i <= graphicalData.n; i++) {
     group: 1,
   });
 }
-const interactiveData = {
-  nodes: [
-    {
-      id: "1",
-      group: "1",
-      radius: 1,
-      citing_patents_count: 1,
-    },
-    {
-      id: "2",
-      group: "2",
-      radius: 1,
-      citing_patents_count: 1,
-    },
-    {
-      id: "3",
-      group: "2",
-      radius: 1,
-      citing_patents_count: 1,
-    },
-    {
-      id: "4",
-      group: "3",
-      radius: 3,
-      citing_patents_count: 3,
-    },
-    {
-      id: "5",
-      group: "10",
-      radius: 3,
-      citing_patents_count: 3,
-    },
-    {
-      id: "6",
-      group: "10",
-      radius: 3,
-      citing_patents_count: 3,
-    },
-  ],
-  links: [
-    {
-      source: "1",
-      target: "2",
-      value: 10,
-    },
-    {
-      source: "2",
-      target: "3",
-      value: 5,
-    },
-    {
-      source: "3",
-      target: "4",
-      value: 10,
-    },
-    {
-      source: "4",
-      target: "5",
-      value: 2,
-    },
-    {
-      source: "5",
-      target: "1",
-      value: 2,
-    },
-    {
-      source: "1",
-      target: "3",
-      value: 2,
-    },
-    {
-      source: "1",
-      target: "4",
-      value: 2,
-    },
-    {
-      source: "1",
-      target: "6",
-      value: 2,
-    },
-  ],
-};
 
 function App() {
   const [graph, setGraph] = useState([]);
