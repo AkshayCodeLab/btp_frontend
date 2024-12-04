@@ -3,22 +3,21 @@ import * as d3 from "d3";
 
 const ForceDirectedGraph = ({ data, pathNodes }) => {
   const svgRef = useRef(null);
-  const width = 1000;
-  const height = 800;
+  const width = 1600; // Increased width
+  const height = 1200; // Increased height
+
   const isContributingEdge = (source, target) => {
     const sourceIndex = pathNodes.indexOf(source);
     const targetIndex = pathNodes.indexOf(target);
 
-    // Both source and target must exist in pathNodes and must be adjacent
     return (
       sourceIndex !== -1 &&
       targetIndex !== -1 &&
       Math.abs(sourceIndex - targetIndex) === 1
     );
   };
-  useEffect(() => {
-    const color = d3.scaleOrdinal(d3.schemeCategory10);
 
+  useEffect(() => {
     // Clear existing SVG elements to avoid overlapping
     d3.select(svgRef.current).selectAll("*").remove();
 
@@ -26,7 +25,7 @@ const ForceDirectedGraph = ({ data, pathNodes }) => {
     const links = data.links.map((d) => ({ ...d }));
     const nodes = data.nodes.map((d) => ({ ...d }));
 
-    // Initialize the force simulation
+    // Initialize the force simulation with improved positioning
     const simulation = d3
       .forceSimulation(nodes)
       .force(
@@ -38,12 +37,12 @@ const ForceDirectedGraph = ({ data, pathNodes }) => {
             return 100 * Math.pow(d.value, 0.7);
           })
       )
-      .force("charge", d3.forceManyBody().strength(-6000))
+      .force("charge", d3.forceManyBody().strength(-4000))
       .force("center", d3.forceCenter(0, 0))
-      .force("x", d3.forceX().strength(0.1))
-      .force("y", d3.forceY().strength(0.1));
+      .force("x", d3.forceX(0).strength(0.1))
+      .force("y", d3.forceY(0).strength(0.1));
 
-    // Create the SVG element
+    // Create the SVG element with larger viewport
     const svg = d3
       .select(svgRef.current)
       .attr("width", width)
@@ -96,10 +95,21 @@ const ForceDirectedGraph = ({ data, pathNodes }) => {
       .selectAll("text")
       .data(links)
       .join("text")
-      .text((d) => d.value + " KWH"); // Assuming the weight is stored in the `value` property
+      .text((d) => d.value + (data?.unit ? data?.unit : " KM"));
 
     // Update positions on each tick
     simulation.on("tick", () => {
+      // Constrain nodes to stay within the viewport
+      const radius = 10; // Node radius
+      const padding = 20; // Additional padding from the edge
+      const halfWidth = width / 2 - radius - padding;
+      const halfHeight = height / 2 - radius - padding;
+
+      nodes.forEach((node) => {
+        node.x = Math.max(-halfWidth, Math.min(halfWidth, node.x));
+        node.y = Math.max(-halfHeight, Math.min(halfHeight, node.y));
+      });
+
       link
         .attr("x1", (d) => d.source.x)
         .attr("y1", (d) => d.source.y)

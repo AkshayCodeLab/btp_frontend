@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import "./App.css";
 import * as d3 from "d3";
 import axios from "axios";
@@ -10,17 +10,17 @@ const graphicalData = {
   from: 1,
   to: 5,
   edges: [
-    [1, 2, 8],
-    [1, 7, 6],
-    [1, 3, 7],
-    [2, 7, 3],
-    [2, 4, 2],
-    [3, 7, 6],
-    [3, 6, 2],
-    [4, 5, 4],
-    [5, 6, 2],
-    [5, 7, 12],
-    [6, 7, 4],
+    [1, 2, 58],
+    [1, 7, 44],
+    [1, 3, 52],
+    [2, 7, 22],
+    [2, 4, 15],
+    [3, 7, 44],
+    [3, 6, 15],
+    [4, 5, 29],
+    [5, 6, 15],
+    [5, 7, 88],
+    [6, 7, 29],
   ],
 };
 
@@ -37,7 +37,7 @@ graphicalData.edges.forEach((edge) => {
   });
 });
 
-for (let i = 1; i <= graphicalData.n; i++) {
+for (let i = 1; i < graphicalData.n; i++) {
   newData.nodes.push({
     id: i,
     group: 1,
@@ -46,9 +46,17 @@ for (let i = 1; i <= graphicalData.n; i++) {
 
 function App() {
   const [graph, setGraph] = useState([]);
-  const [to, setTo] = useState(null);
-  const [from, setFrom] = useState(null);
-  const [fuel, setFuel] = useState(null);
+  const formRef = useRef({
+    to: "",
+    from: "",
+    fuel: "",
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    formRef.current[name] = value; // Update the ref value
+  };
+
   const [error, setError] = useState("");
   const [data, setData] = useState(() => d3.ticks(-2, 2, 200).map(Math.sin));
   const [path, setPath] = useState([]);
@@ -58,6 +66,7 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const { to, from, fuel } = formRef.current;
     const response = await axios.post("http://localhost:8080/shortestPath", {
       to: to,
       from: from,
@@ -76,7 +85,12 @@ function App() {
 
   const handleCaliberation = async (e) => {
     e.preventDefault();
-    if (vehicleModel.length === 0) return;
+
+    setPath([]);
+    if (vehicleModel.length === 0) {
+      setSimulData(newData);
+      return;
+    }
 
     const response = await axios.post("http://localhost:8080/caliberate", {
       name: vehicleModel,
@@ -85,6 +99,7 @@ function App() {
     setSimulData({
       nodes: simulData.nodes,
       links: response.data,
+      unit: " KWH",
     });
   };
 
@@ -112,33 +127,21 @@ function App() {
           <option value="Tesla Model Y">Tesla Model Y</option>
           <option value="Hyundai Kona Electric">Hyundai Kona Electric</option>
         </select>
-        <button onClick={handleCaliberation}>Submit</button>
+        <button onClick={handleCaliberation}>Calibrate</button>
       </form>
 
       <form action="submit">
         <label>From: </label>
-        <input
-          placeholder="from"
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
-        />
+        <input placeholder="from" name="from" onChange={handleInputChange} />
         <label>To: </label>
-        <input
-          placeholder="to"
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-        />
+        <input placeholder="to" name="to" onChange={handleInputChange} />
         <label>Fuel: </label>
 
-        <input
-          placeholder="fuel"
-          value={fuel}
-          onChange={(e) => setFuel(e.target.value)}
-        />
+        <input placeholder="fuel" name="fuel" onChange={handleInputChange} />
         <button onClick={handleSubmit}>Submit</button>
       </form>
 
-      {graph ? <pre>{JSON.stringify(graph, null, 2)}</pre> : "Loading..."}
+      {!graph && "Loading..."}
     </div>
   );
 }
