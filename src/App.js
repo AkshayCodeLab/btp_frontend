@@ -3,7 +3,7 @@ import "./App.css";
 import * as d3 from "d3";
 import axios from "axios";
 import ForceDirectedGraph from "./ForceDirectedGraph";
-import useFetchGraph from "./Utils/useFetchGraph";
+import useFetchGraph from "./utils/useFetchGraph";
 
 const graphicalData = {
   n: 8,
