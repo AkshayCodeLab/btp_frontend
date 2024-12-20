@@ -1,11 +1,11 @@
 import { useRef, useState } from "react";
 import "./App.css";
 import * as d3 from "d3";
-import axios from "axios";
 import ForceDirectedGraph from "./ForceDirectedGraph";
-import useFetchGraph from "./utils/useFetchGraph";
-
-const graphicalData = {
+import useFetchGraph from "./hooks/useFetchGraph";
+import { transformGraphData } from "./utils/dataTransformer";
+import { apiService } from "./services/apiService";
+const initialGraphData = {
   n: 8,
   from: 1,
   to: 5,
@@ -24,28 +24,16 @@ const graphicalData = {
   ],
 };
 
-const newData = {
-  nodes: [],
-  links: [],
-};
-
-graphicalData.edges.forEach((edge) => {
-  newData.links.push({
-    source: edge[0],
-    target: edge[1],
-    value: edge[2],
-  });
-});
-
-for (let i = 1; i < graphicalData.n; i++) {
-  newData.nodes.push({
-    id: i,
-    group: 1,
-  });
-}
-
 function App() {
-  const [graph, setGraph] = useState([]);
+  const [error, setError] = useState("");
+  const [data, setData] = useState(() => d3.ticks(-2, 2, 200).map(Math.sin));
+  const [path, setPath] = useState([]);
+  const [vehicleModel, setVehicleModel] = useState("");
+  const [simulData, setSimulData] = useState(
+    transformGraphData(initialGraphData)
+  );
+  const { graph, loading } = useFetchGraph(initialGraphData, setError);
+
   const formRef = useRef({
     to: "",
     from: "",
@@ -54,32 +42,25 @@ function App() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    formRef.current[name] = value; // Update the ref value
+    formRef.current[name] = value;
   };
-
-  const [error, setError] = useState("");
-  const [data, setData] = useState(() => d3.ticks(-2, 2, 200).map(Math.sin));
-  const [path, setPath] = useState([]);
-  const [vehicleModel, setVehicleModel] = useState("");
-  const [simulData, setSimulData] = useState(newData);
-  useFetchGraph(graphicalData, setGraph);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { to, from, fuel } = formRef.current;
-    const response = await axios.post("http://localhost:8080/shortestPath", {
-      to: to,
-      from: from,
-      fuel: fuel,
-    });
 
-    console.log(response.data);
+    try {
+      const response = await apiService.findShortestPath({ to, from, fuel });
 
-    if (response.data?.second.length === 0) {
-      setError("Insufficient fuel to traverse path!");
-    } else {
-      setError("");
-      setPath(response.data?.second);
+      if (response?.second.length === 0) {
+        setError("Insufficient fuel to traverse path!");
+        setPath([]);
+      } else {
+        setError("");
+        setPath(response?.second);
+      }
+    } catch (error) {
+      setError("An error occurred while finding the path");
     }
   };
 
@@ -87,20 +68,23 @@ function App() {
     e.preventDefault();
 
     setPath([]);
-    if (vehicleModel.length === 0) {
-      setSimulData(newData);
+    if (!vehicleModel) {
+      setSimulData(transformGraphData(initialGraphData));
       return;
     }
 
-    const response = await axios.post("http://localhost:8080/caliberate", {
-      name: vehicleModel,
-    });
+    try {
+      const calibratedLinks = await apiService.calibrateVehicle(vehicleModel);
 
-    setSimulData({
-      nodes: simulData.nodes,
-      links: response.data,
-      unit: " KWH",
-    });
+      setSimulData({
+        ...simulData,
+        links: calibratedLinks,
+        unit: " KWH",
+      });
+    } catch (error) {
+      console.err("Calibration Error: ", error);
+      setError("Error while calibrating the Graph.");
+    }
   };
 
   function onMouseMove(event) {
@@ -113,7 +97,9 @@ function App() {
       <div onMouseMove={onMouseMove}>
         <ForceDirectedGraph data={simulData} pathNodes={path} />
       </div>
-      {error && <div>The path can't be traversed!</div>}
+
+      {error && <div className="error">{error}</div>}
+      {loading && <div>Loading...</div>}
 
       <form action="submit">
         <label>Vehicle Model: </label>
