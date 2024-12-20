@@ -1,38 +1,19 @@
 import { useRef, useState } from "react";
 import "./App.css";
-import * as d3 from "d3";
-import ForceDirectedGraph from "./ForceDirectedGraph";
 import useFetchGraph from "./hooks/useFetchGraph";
 import { transformGraphData } from "./utils/dataTransformer";
 import { apiService } from "./services/apiService";
-const initialGraphData = {
-  n: 8,
-  from: 1,
-  to: 5,
-  edges: [
-    [1, 2, 58],
-    [1, 7, 44],
-    [1, 3, 52],
-    [2, 7, 22],
-    [2, 4, 15],
-    [3, 7, 44],
-    [3, 6, 15],
-    [4, 5, 29],
-    [5, 6, 15],
-    [5, 7, 88],
-    [6, 7, 29],
-  ],
-};
+import { Graph, PathForm, CalibrationForm } from "./components";
+import { INITIAL_GRAPH_DATA } from "./constants";
 
 function App() {
   const [error, setError] = useState("");
-  const [data, setData] = useState(() => d3.ticks(-2, 2, 200).map(Math.sin));
   const [path, setPath] = useState([]);
   const [vehicleModel, setVehicleModel] = useState("");
   const [simulData, setSimulData] = useState(
-    transformGraphData(initialGraphData)
+    transformGraphData(INITIAL_GRAPH_DATA)
   );
-  const { graph, loading } = useFetchGraph(initialGraphData, setError);
+  const { graph, loading } = useFetchGraph(INITIAL_GRAPH_DATA, setError);
 
   const formRef = useRef({
     to: "",
@@ -69,7 +50,7 @@ function App() {
 
     setPath([]);
     if (!vehicleModel) {
-      setSimulData(transformGraphData(initialGraphData));
+      setSimulData(transformGraphData(INITIAL_GRAPH_DATA));
       return;
     }
 
@@ -87,45 +68,24 @@ function App() {
     }
   };
 
-  function onMouseMove(event) {
-    const [x, y] = d3.pointer(event);
-    setData(data.slice(-200).concat(Math.atan2(x, y)));
-  }
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="App">
-      <div onMouseMove={onMouseMove}>
-        <ForceDirectedGraph data={simulData} pathNodes={path} />
-      </div>
+      <Graph simulData={simulData} path={path} />
 
       {error && <div className="error">{error}</div>}
-      {loading && <div>Loading...</div>}
 
-      <form action="submit">
-        <label>Vehicle Model: </label>
-        <select
-          name="select"
-          value={vehicleModel}
-          onChange={(e) => setVehicleModel(e.target.value)}
-        >
-          <option value="">Select</option>
-          <option value="Tesla Model 3">Tesla Model 3</option>
-          <option value="Tesla Model Y">Tesla Model Y</option>
-          <option value="Hyundai Kona Electric">Hyundai Kona Electric</option>
-        </select>
-        <button onClick={handleCaliberation}>Calibrate</button>
-      </form>
+      <CalibrationForm
+        vehicleModel={vehicleModel}
+        setVehicleModel={setVehicleModel}
+        handleCaliberation={handleCaliberation}
+      />
 
-      <form action="submit">
-        <label>From: </label>
-        <input placeholder="from" name="from" onChange={handleInputChange} />
-        <label>To: </label>
-        <input placeholder="to" name="to" onChange={handleInputChange} />
-        <label>Fuel: </label>
-
-        <input placeholder="fuel" name="fuel" onChange={handleInputChange} />
-        <button onClick={handleSubmit}>Submit</button>
-      </form>
+      <PathForm
+        handleInputChange={handleInputChange}
+        handleSubmit={handleSubmit}
+      />
 
       {!graph && "Loading..."}
     </div>
