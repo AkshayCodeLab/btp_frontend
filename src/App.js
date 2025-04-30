@@ -86,8 +86,6 @@ function App() {
         handleInputChange={handleInputChange}
         handleSubmit={handleSubmit}
       />
-
-      {!graph && "Loading..."}
     </div>
   );
 }

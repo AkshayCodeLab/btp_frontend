@@ -28,7 +28,7 @@ export const apiService = {
   calibrateVehicle: async (vehicleModel) => {
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/caliberate`,
+        `${process.env.REACT_APP_BACKEND_URL}/calibrate`,
         { name: vehicleModel }
       );
       return response.data;

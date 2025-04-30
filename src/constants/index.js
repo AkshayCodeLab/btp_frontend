@@ -1,7 +1,5 @@
 export const INITIAL_GRAPH_DATA = {
-  n: 8,
-  from: 1,
-  to: 5,
+  vertices: 8,
   edges: [
     [1, 2, 58],
     [1, 7, 44],
@@ -15,6 +13,7 @@ export const INITIAL_GRAPH_DATA = {
     [5, 7, 88],
     [6, 7, 29],
   ],
+  chargingStations: [1, 3, 4],
 };
 
 export const VEHICLE_OPTIONS = [

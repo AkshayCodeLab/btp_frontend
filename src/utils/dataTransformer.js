@@ -13,7 +13,7 @@ export const transformGraphData = (graphicalData) => {
     });
   });
 
-  for (let i = 1; i < graphicalData.n; i++) {
+  for (let i = 1; i < graphicalData.vertices; i++) {
     newData.nodes.push({
       id: i,
       group: 1,
